@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>România de la democrație la autoritarism</title>
+    <link rel="shortcut icon" type="image" href="https://cdn-icons-png.flaticon.com/512/5027/5027444.png">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #2b5876, #4e4376); /* Updated gradient background */
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(135deg, #0f4c75, #3282b8, #bbe1fa); /* Enhanced gradient color for progress */
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .question:hover {
+            transform: translateY(-5px);
+        }
+
+        .question h3 {
+            margin-bottom: 10px;
+            color: #2A69AC;
+        }
+
+        .question img {
+            max-width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .question input {
+            margin-right: 10px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .navigation button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #1E3C72, #2A69AC, #4B86E8); /* Enhanced gradient color for buttons */
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .navigation button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .navigation button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2A69AC, #4B86E8, #1E3C72); /* Darker gradient on hover */
+            transform: scale(1.05);
+        }
+
+        #submit,
+        #restart {
+            display: none;
+            margin: 20px auto;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #1E3C72, #2A69AC, #4B86E8); /* Enhanced gradient for buttons */
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            display: block;
+        }
+
+        #submit:hover,
+        #restart:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 22px;
+            padding: 15px;
+            background: #dff0d8;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease;
+        }
+
+        #high-score {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .explanation {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .navigation button {
+                flex: 1;
+                margin: 0 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Test Grilă la Istorie - 16.10.2024</h2>
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div id="quiz-container">
+        <!-- Questions will be dynamically inserted here -->
+    </div>
+
+    <div class="navigation">
+        <button id="prev" disabled>Anterior</button>
+        <button id="next">Următor</button>
+    </div>
+
+    <button id="submit">Parcă gata</button>
+    <button id="restart" style="display: none;">Restart</button>
+    <div id="result"></div>
+    <div id="high-score"></div>
+
+    <script>
+        const answers = {
+            q1: 'B',
+            q2: 'A',
+            q3: 'C',
+            q4: 'D',
+            q5: 'A',
+            q6: 'B',
+            q7: 'C',
+            q8: 'D',
+            q9: 'A',
+            q10: 'C'
+        };
+
+        const explanations = {
+            q1: 'La 15 octombrie 1922, la Alba Iulia, a avut loc încoronarea regelui Ferdinand I.',
+            q2: 'În noiembrie 1919 au avut loc primele alegeri generale pe baza votului universal.',
+            q3: 'Conform Constituției din 1923, ,,capul puterii armate era regele, formă de guvernare a statului fiind monarhia constituțională.',
+            q4: 'Iuliu Maniu',
+            q5: 'După 1918, puterea legislativă aparținea parlamentului bicameral, compus din Camera Deputaților și Senat .',
+            q6: 'În perioada interbelică, scena politică românească a fost dominată de PNL și PNȚ.',
+            q7: 'În 1927 regele Mihai nu putea deveni rege, deoarece era minor.',
+            q8: 'Principalul scop al acțiunii politice lui Carol al II-lea era instaurarea dictaturii personale prin lovitură de stat.',
+            q9: 'Prin Constituția din 1938, regele Carol al II-lea e implica nemijlocit în activitatea guvernamentală.',
+            q10: 'În septembrie 1940, din cauza unei vaste instabilități politice și sociale, a fost numit prim-ministru prin Decret Regal Ion Antonescu.'
+        };
+
+        const questions = [
+            {
+                id: 'q1',
+                text: 'La 15 octombrie 1922, la Alba Iulia, a avut loc încoronarea regelui:',
+                options: {
+                    A: 'Mihai I',
+                    B: 'Ferdinand I',
+                    C: 'Carol I',
+                    D: 'Carol al II-lea'
+                }
+            },
+            {
+                id: 'q2',
+                text: 'În noiembrie 1919 au avut loc:',
+                options: {
+                    A: 'primele alegeri generale pe baza votului universal',
+                    B: 'primele alegeri generale pe baza votului autoritar',
+                    C: 'incoronarea regelui',
+                    D: 'adoptarea Constituției României.'
+                }
+            },
+            {
+                id: 'q3',
+                text: 'Conform Constituției din 1923, ,,capul puterii" armate era:',
+                options: {
+                    A: 'generalul suprem al Armatei Române',
+                    B: 'parlamentul',
+                    C: 'regele, formă de guvernare a statului fiind monarhia constituțională',
+                    D: 'regele, formă de guvernare a statului fiind monarhia absolută'
+                }
+            },
+            {
+                id: 'q4',
+                text: 'Personalitatea din imagine este:',
+                options: {
+                    A: 'Ion Inculeț',
+                    B: 'Carol al II-lea',
+                    C: 'Mihai I',
+                    D: 'Iuliu Maniu'
+                },
+                image: 'image1.png' // Actualizează calea dacă este necesar
+            },
+            {
+                id: 'q5',
+                text: 'După 1918, puterea legislativă aparținea:',
+                options: {
+                    A: 'parlamentului bicameral, compus din Camera Deputaților și Senat',
+                    B: 'regelui',
+                    C: 'guvernului',
+                    D: 'curții de Apel'
+                }
+            },
+            {
+                id: 'q6',
+                text: 'În perioada interbelică, scena politică românească a fost dominată de:',
+                options: {
+                    A: 'Garda de Fier ',
+                    B: 'PNL și PNȚ',
+                    C: 'PS',
+                    D: 'PC'
+                }
+            },
+            {
+                id: 'q7',
+                text: 'În 1927 regele Mihai nu putea deveni rege, deoarece:',
+                options: {
+                    A: 'nu era in țară',
+                    B: 'nu era nepotul legitim lui Ferdinand',
+                    C: 'era minor',
+                    D: 'a renuntat la tron'
+                }
+            },
+
+            {
+                id: 'q8',
+                text: 'Principalul scop al acțiunii politice lui Carol al II-lea era:',
+                options: {
+                    A: 'democratizarea statului',
+                    B: 'instaurarea regimul fascist',
+                    C: 'dezvoltarea economiei statului',
+                    D: 'instaurarea dictaturii personale prin lovitură de stat'
+                }
+            },
+            {
+                id: 'q9',
+                text: 'Prin Constituția din 1938, regele Carol al II-lea:',
+                options: {
+                    A: 'se implica nemijlocit în activitatea guvernamentală',
+                    B: 'democratiza statul',
+                    C: 'a abolit suveranitatea',
+                    D: 'a interzis libertatea individuală'
+                }
+            },
+            {
+                id: 'q10',
+                text: 'În septembrie 1940, din cauza unei vaste instabilități politice și sociale, a fost numit prim-ministru prin Decret Regal:',
+                options: {
+                    A: 'Mihai I',
+                    B: 'Nicolae Titulescu',
+                    C: 'Ion Antonescu',
+                    D: 'Ion Brătianu'
+                }
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        // Shuffle questions
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const shuffledQuestions = shuffle([...questions]);
+
+        // Initialize High Score
+        let highScore = localStorage.getItem('highScore') || 0;
+
+        // Render Questions
+        const quizContainer = document.getElementById('quiz-container');
+
+        shuffledQuestions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question-container');
+            if (index === 0) questionDiv.classList.add('active');
+            questionDiv.setAttribute('data-index', index);
+
+            const questionHTML = `
+                <div class="question">
+                    <h3>${index + 1}. ${q.text}</h3>
+                    ${q.image ? `<img src="${q.image}" alt="Imagine pentru Întrebarea ${index + 1}">` : ''}
+                    ${Object.entries(q.options).map(([key, value]) => `
+                        <input type="radio" name="${q.id}" value="${key}" id="${q.id}${key}">
+                        <label for="${q.id}${key}"> ${value}</label><br>
+                    `).join('')}
+                    <div class="feedback" id="${q.id}-feedback" style="display: none;"></div>
+                    <div class="explanation" id="${q.id}-explanation" style="display: none;"></div>
+                </div>
+            `;
+            questionDiv.innerHTML = questionHTML;
+            quizContainer.appendChild(questionDiv);
+        });
+
+        const totalQuestions = shuffledQuestions.length;
+
+        // Navigation Buttons
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                showQuestion(currentQuestionIndex - 1);
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                showQuestion(currentQuestionIndex + 1);
+            }
+        });
+
+        function showQuestion(index) {
+            document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+            document.querySelector(`.question-container[data-index="${index}"]`).classList.add('active');
+            currentQuestionIndex = index;
+            updateNavigationButtons();
+            updateProgressBar();
+        }
+
+        function updateNavigationButtons() {
+            prevButton.disabled = currentQuestionIndex === 0;
+            nextButton.disabled = currentQuestionIndex === totalQuestions - 1;
+        }
+
+        function updateProgressBar() {
+            const progress = document.getElementById('progress');
+            const percentage = ((currentQuestionIndex) / totalQuestions) * 100;
+            progress.style.width = percentage + '%';
+        }
+
+        // Initial update
+        updateNavigationButtons();
+        updateProgressBar();
+
+        // Submit and Restart Buttons
+        const submitButton = document.getElementById('submit');
+        const restartButton = document.getElementById('restart');
+        const resultDiv = document.getElementById('result');
+
+        submitButton.style.display = 'block';
+
+        submitButton.addEventListener('click', submitQuiz);
+        restartButton.addEventListener('click', restartQuiz);
+
+        function submitQuiz() {
+            let answeredQuestions = 0;
+            score = 0;
+
+            shuffledQuestions.forEach(q => {
+                const userAnswer = document.querySelector(`input[name="${q.id}"]:checked`);
+                const feedbackDiv = document.getElementById(`${q.id}-feedback`);
+                const explanationDiv = document.getElementById(`${q.id}-explanation`);
+                if (userAnswer) {
+                    answeredQuestions++;
+                    if (userAnswer.value === answers[q.id]) {
+                        score++;
+                        feedbackDiv.textContent = 'Corect!';
+                        feedbackDiv.classList.add('correct');
+                    } else {
+                        feedbackDiv.textContent = 'Incorect!';
+                        feedbackDiv.classList.add('incorrect');
+                    }
+                    explanationDiv.textContent = explanations[q.id];
+                    feedbackDiv.style.display = 'block';
+                    explanationDiv.style.display = 'block';
+                }
+            });
+
+            if (answeredQuestions === totalQuestions) {
+                showResult();
+            } else {
+                alert('Răspundeți la toate întrebările!');
+            }
+
+            updateProgressAfterSubmit();
+        }
+
+        function showResult() {
+            resultDiv.textContent = `Ai răspuns corect la ${score} întrebări din ${totalQuestions}.`;
+            submitButton.style.display = 'none';
+            restartButton.style.display = 'block';
+
+            // Update Progress Bar to show percentage
+            const progress = document.getElementById('progress');
+            const percentage = (score / totalQuestions) * 100;
+            progress.style.width = percentage + '%';
+            progress.style.background = percentage >= 70 ? '#4CAF50' : percentage >= 40 ? '#ff9800' : '#f44336';
+        }
+
+        function updateProgressAfterSubmit() {
+            const progress = document.getElementById('progress');
+            const answered = shuffledQuestions.filter(q => document.querySelector(`input[name="${q.id}"]:checked`)).length;
+            const percentage = (answered / totalQuestions) * 100;
+            progress.style.width = percentage + '%';
+        }
+
+        function restartQuiz() {
+
+            // Reset feedback and explanations
+            shuffledQuestions.forEach(q => {
+                const feedbackDiv = document.getElementById(`${q.id}-feedback`);
+                const explanationDiv = document.getElementById(`${q.id}-explanation`);
+                feedbackDiv.textContent = '';
+                feedbackDiv.classList.remove('correct', 'incorrect');
+                feedbackDiv.style.display = 'none';
+                explanationDiv.textContent = '';
+                explanationDiv.style.display = 'none';
+            });
+
+            // Clear selections
+            document.querySelectorAll('input[type="radio"]').forEach(input => input.checked = false);
+
+            // Reset progress bar
+            updateProgressBar();
+
+            // Show first question
+            showQuestion(0);
+
+            // Reset result and high score display
+            resultDiv.textContent = '';
+            document.getElementById('high-score').textContent = '';
+
+            // Show submit button and hide restart button
+            submitButton.style.display = 'block';
+            restartButton.style.display = 'none';
+        }
+
+    </script>
+</body>
+
+</html>
